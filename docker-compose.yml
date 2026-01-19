@@ -5,8 +5,17 @@ services:
     container_name: s-ui
     hostname: "s-ui"
     volumes:
-      - /root/s-ui/db:/app/db
-      - /root/s-ui/cert:/app/cert
+      - "./db:/app/db"
+      - "./cert:/app/cert"
     tty: true
     restart: unless-stopped
-    network_mode: host
+    ports:
+      - "2095:2095"
+      - "2096:2096"
+    networks:
+      - s-ui
+    entrypoint: "./entrypoint.sh"
+
+networks:
+  s-ui:
+    driver: bridge
