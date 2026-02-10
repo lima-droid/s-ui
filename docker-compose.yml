@@ -1,4 +1,4 @@
----
+version: '3.8'
 services:
   s-ui:
     image: alireza7/s-ui
@@ -9,14 +9,6 @@ services:
       - "./cert:/app/cert"
     tty: true
     restart: unless-stopped
-    ports:
-      - "2095:2095"
-      - "2096:2096"
-    networks:
-      - s-ui
+    network_mode: "host"
     entrypoint: "./entrypoint.sh"
-
-networks:
-  s-ui:
-    driver: bridge
   
