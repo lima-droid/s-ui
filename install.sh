@@ -6,6 +6,7 @@ yellow='\033[0;33m'
 plain='\033[0m'
 
 cur_dir=$(pwd)
+BASE_URL="https://s-ui.alireza0.dev"
 
 # 检查root权限
 [[ $EUID -ne 0 ]] && echo -e "${red}致命错误: ${plain} 请使用root权限运行此脚本 \n " && exit 1
@@ -135,25 +136,42 @@ install_s-ui() {
     cd /tmp/
 
     if [ $# == 0 ]; then
+        # 先尝试从 GitHub API 获取最新版本
+        echo -e "${yellow}正在从 GitHub API 获取最新版本...${plain}"
         last_version=$(curl -Ls "https://api.github.com/repos/alireza0/s-ui/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
+        
         if [[ ! -n "$last_version" ]]; then
-            echo -e "${red}获取s-ui版本失败，可能是由于Github API限制，请稍后重试${plain}"
-            exit 1
-        fi
-        echo -e "获取到s-ui最新版本: ${last_version}，开始安装..."
-        wget -N --no-check-certificate -O /tmp/s-ui-linux-$(arch).tar.gz https://github.com/alireza0/s-ui/releases/download/${last_version}/s-ui-linux-$(arch).tar.gz
-        if [[ $? -ne 0 ]]; then
-            echo -e "${red}下载s-ui失败，请确保服务器可以访问Github ${plain}"
-            exit 1
+            echo -e "${red}获取s-ui版本失败（GitHub API限制），将使用官方下载源...${plain}"
+            # 使用 BASE_URL 直接下载最新版
+            echo -e "正在从 ${BASE_URL} 下载最新版 s-ui..."
+            wget -N --no-check-certificate -O /tmp/s-ui-linux-$(arch).tar.gz "${BASE_URL}/download/s-ui-linux-$(arch).tar.gz"
+            if [[ $? -ne 0 ]]; then
+                echo -e "${red}下载s-ui失败，请确保服务器可以访问 ${BASE_URL}${plain}"
+                exit 1
+            fi
+        else
+            echo -e "获取到s-ui最新版本: ${last_version}，开始安装..."
+            wget -N --no-check-certificate -O /tmp/s-ui-linux-$(arch).tar.gz "https://github.com/alireza0/s-ui/releases/download/${last_version}/s-ui-linux-$(arch).tar.gz"
+            if [[ $? -ne 0 ]]; then
+                echo -e "${red}从 GitHub 下载失败，尝试使用官方下载源...${plain}"
+                wget -N --no-check-certificate -O /tmp/s-ui-linux-$(arch).tar.gz "${BASE_URL}/download/s-ui-linux-$(arch).tar.gz"
+                if [[ $? -ne 0 ]]; then
+                    echo -e "${red}下载s-ui失败，请检查网络连接${plain}"
+                    exit 1
+                fi
+            fi
         fi
     else
         last_version=$1
-        url="https://github.com/alireza0/s-ui/releases/download/${last_version}/s-ui-linux-$(arch).tar.gz"
         echo -e "开始安装 s-ui v$1"
-        wget -N --no-check-certificate -O /tmp/s-ui-linux-$(arch).tar.gz ${url}
+        wget -N --no-check-certificate -O /tmp/s-ui-linux-$(arch).tar.gz "https://github.com/alireza0/s-ui/releases/download/${last_version}/s-ui-linux-$(arch).tar.gz"
         if [[ $? -ne 0 ]]; then
-            echo -e "${red}下载 s-ui v$1 失败，请检查版本是否存在${plain}"
-            exit 1
+            echo -e "${red}下载 s-ui v$1 失败，尝试使用官方下载源...${plain}"
+            wget -N --no-check-certificate -O /tmp/s-ui-linux-$(arch).tar.gz "${BASE_URL}/download/s-ui-linux-$(arch).tar.gz"
+            if [[ $? -ne 0 ]]; then
+                echo -e "${red}下载 s-ui v$1 失败，请检查版本是否存在或网络连接${plain}"
+                exit 1
+            fi
         fi
     fi
 
