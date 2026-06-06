@@ -1,5 +1,4 @@
 <div align="center">
-  <img src="docs/s-ui-logo.png" alt="S-UI" height="100">
   <h1>S-UI</h1>
   <p><strong>多协议代理管理面板 · 轻量级 · 跨平台</strong></p>
   <p>
